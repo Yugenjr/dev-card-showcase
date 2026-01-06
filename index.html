@@ -44,6 +44,9 @@
         <div class="circle"></div>
         <div class="circle"></div>
         <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
       </div>
       <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -440,17 +443,22 @@
         });
     </script>
 
-    <!-- 🔍 SEARCH FILTER SCRIPT (ADDED) -->
+    <!-- SEARCH FILTER SCRIPT  -->
+
     <script>
-        function getContributorCards() {
-    // Select all direct children of .card-container with data-contributor="true"
-    return Array.from(document.querySelectorAll('.card-container > div[data-contributor="true"]'));
+function getContributorCards() {
+    return Array.from(document.querySelectorAll('.card-container .card[data-contributor="true"]'));
 }
+
+const originalCards = [];
+document.addEventListener("DOMContentLoaded", function() {
+    getContributorCards().forEach(card => originalCards.push(card));
+    updateContributorStats();
+});
 
 function filterCards() {
     const input = document.getElementById("searchInput").value.toLowerCase();
-    const cards = getContributorCards();
-    cards.forEach(card => {
+    getContributorCards().forEach(card => {
         const name = card.querySelector("h2").innerText.toLowerCase();
         card.style.display = name.includes(input) ? "block" : "none";
     });
@@ -461,8 +469,12 @@ function sortCards() {
     const value = document.getElementById("sortSelect")?.value;
     if (!value) return;
     let cards = getContributorCards();
+    const adminCard = container.querySelector('.card-container > .card:first-child');
+    if (!adminCard) return;
     if (value === "default") {
-        // Do not change order
+        const fragment = document.createDocumentFragment();
+        originalCards.forEach(card => fragment.appendChild(card));
+        container.insertBefore(fragment, adminCard.nextSibling);
         return;
     }
     if (value === "az") {
@@ -476,15 +488,11 @@ function sortCards() {
         );
     }
     if (value === "newest") {
-        cards.reverse();
+        cards.sort((a, b) => originalCards.indexOf(b) - originalCards.indexOf(a));
     }
-    // Move sorted cards after admin card
-    const adminCard = container.querySelector('.card:not([data-contributor])');
-    let nextSibling = adminCard.nextSibling;
-    cards.forEach(card => {
-        container.insertBefore(card, nextSibling);
-        nextSibling = card.nextSibling;
-    });
+    const fragment = document.createDocumentFragment();
+    cards.forEach(card => fragment.appendChild(card));
+    container.insertBefore(fragment, adminCard.nextSibling);
 }
 
 function animateValue(element, start, end, duration) {
@@ -521,7 +529,6 @@ function updateContributorStats() {
 document.addEventListener("DOMContentLoaded", updateContributorStats);
     </script>
 
-    <!-- ...existing scripts... -->
 
 </body>
 
